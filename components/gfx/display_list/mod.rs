@@ -289,12 +289,6 @@ impl StackingContext {
                              tile_bounds: &Rect<AzFloat>,
                              transform: &Matrix4,
                              clip_rect: Option<&Rect<Au>>) {
-        // If a layer is being used, the transform for this layer
-        // will be handled by the compositor.
-        let transform = match self.layer {
-            Some(..) => *transform,
-            None => transform.mul(&self.transform),
-        };
         let temporary_draw_target =
             paint_context.get_or_create_temporary_draw_target(&self.filters, self.blend_mode);
         {
@@ -431,6 +425,13 @@ impl StackingContext {
                                           tile_bounds: &Rect<AzFloat>,
                                           transform: &Matrix4,
                                           clip_rect: Option<&Rect<Au>>) {
+        // If a layer is being used, the transform for this layer
+        // will be handled by the compositor.
+        let transform = match self.layer {
+            Some(..) => *transform,
+            None => transform.mul(&self.transform),
+        };
+
         // TODO(gw): This is a hack to avoid running the DL optimizer
         // on 3d transformed tiles. We should have a better solution
         // than just disabling the opts here.
@@ -438,18 +439,29 @@ impl StackingContext {
             self.draw_into_context(&self.display_list,
                                    paint_context,
                                    tile_bounds,
-                                   transform,
+                                   &transform,
                                    clip_rect);
 
         } else {
+
+            // Invert the accumulated transform for this stacking context.
+            // Then use that to transform a tile rect placed at the
+            // origin into the space of the stacking context.
+            let inv_transform = transform.invert();
+            let inv_transform = Matrix2D::new(inv_transform.m11, inv_transform.m12,
+                                              inv_transform.m21, inv_transform.m22,
+                                              inv_transform.m41, inv_transform.m42);
+            let local_tile_rect = Rect::new(Point2D::zero(), paint_context.page_rect.size);
+            let world_tile_rect = inv_transform.transform_rect(&local_tile_rect);
+
             // Optimize the display list to throw out out-of-bounds display items and so forth.
             let display_list =
-                DisplayListOptimizer::new(tile_bounds).optimize(&*self.display_list);
+                DisplayListOptimizer::new(&world_tile_rect).optimize(&*self.display_list);
 
             self.draw_into_context(&display_list,
                                    paint_context,
                                    tile_bounds,
-                                   transform,
+                                   &transform,
                                    clip_rect);
         }
     }
