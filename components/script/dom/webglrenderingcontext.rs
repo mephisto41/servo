@@ -76,6 +76,7 @@ pub struct WebGLRenderingContext {
     #[ignore_heap_size_of = "Defined in ipc-channel"]
     ipc_renderer: IpcSender<CanvasMsg>,
     canvas: JS<HTMLCanvasElement>,
+    #[ignore_heap_size_of = "Defined in webrender_traits"]
     last_error: Cell<Option<WebGLError>>,
     texture_unpacking_settings: Cell<TextureUnpacking>,
     bound_texture_2d: MutNullableHeap<JS<WebGLTexture>>,
@@ -419,6 +420,7 @@ impl WebGLRenderingContextMethods for WebGLRenderingContext {
             Some(data) => data,
             None => return self.webgl_error(InvalidValue),
         };
+
         if offset < 0 {
             return self.webgl_error(InvalidValue);
         }
