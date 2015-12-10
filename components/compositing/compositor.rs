@@ -29,7 +29,6 @@ use layers::scene::Scene;
 use layout_traits::LayoutControlChan;
 use msg::compositor_msg::{Epoch, EventResult, FrameTreeId, LayerId, LayerKind};
 use msg::compositor_msg::{LayerProperties, ScrollPolicy};
-use msg::constellation_msg::{AnimationState, Image, PixelFormat};
 use msg::constellation_msg::{AnimationState, Image, PixelFormat, MouseEventType};
 use msg::constellation_msg::{Key, KeyModifiers, KeyState, LoadData, MouseButton};
 use msg::constellation_msg::{NavigationDirection, PipelineId, WindowSizeData};

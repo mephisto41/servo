@@ -690,11 +690,11 @@ impl<LTF: LayoutTaskFactory, STF: ScriptTaskFactory> Constellation<LTF, STF> {
 
 
             // Notification that painting has finished and is requesting permission to paint.
-            Request::Paint(FromPaintMsg::Ready(pipeline_id)) => {
+/*            Request::Paint(FromPaintMsg::Ready(pipeline_id)) => {
                 debug!("constellation got painter ready message");
                 panic!("todo - unused in WR");
                 //self.handle_painter_ready_msg(pipeline_id);
-            }
+            }*/
             Request::Paint(FromPaintMsg::Failure(Failure { pipeline_id, parent_info })) => {
                 debug!("handling paint failure message from pipeline {:?}, {:?}", pipeline_id, parent_info);
                 panic!("todo - unused in WR");

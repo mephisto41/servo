@@ -1598,7 +1598,7 @@ dependencies = [
  "libc 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "msg 0.0.1",
  "net_traits 0.0.1",
- "offscreen_gl_context 0.1.0 (git+https://github.com/ecoal95/rust-offscreen-rendering-context)",
+ "offscreen_gl_context 0.1.0 (git+https://github.com/ecoal95/rust-offscreen-rendering-context?branch=webrender)",
  "plugins 0.0.1",
  "profile_traits 0.0.1",
  "serde 0.6.6 (registry+https://github.com/rust-lang/crates.io-index)",
