@@ -166,12 +166,12 @@ impl Browser {
                     None => hidpi_factor,
                 }
             };
-            let framebuffer_size = Size2D::new((size.width as f32 * hidpi_factor) as u32,
-                                               (size.height as f32 * hidpi_factor) as u32);
+            //let framebuffer_size = Size2D::new((size.width as f32 * hidpi_factor) as u32,
+            //                                   (size.height as f32 * hidpi_factor) as u32);
 
             let (webrender, webrender_sender) = webrender::Renderer::new(size.width,
                                                                          size.height,
-                                                                         &framebuffer_size,
+                                                                         //&framebuffer_size,
                                                                          device_pixel_ratio,
                                                                          resource_path,
                                                                          opts.enable_text_antialiasing,
