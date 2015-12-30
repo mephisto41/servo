@@ -35,7 +35,7 @@ branch = "webrender"
 git = "https://github.com/servo/ipc-channel"
 
 [dependencies.webrender_traits]
-git = "https://github.com/glennw/webrender_traits"
+git = "https://github.com/mephisto41/webrender_traits"
 
 [dependencies]
 cssparser = { version = "0.4", features = [ "serde-serialization" ] }

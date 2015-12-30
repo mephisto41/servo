@@ -68,10 +68,10 @@ branch = "webrender"
 git = "https://github.com/pcwalton/gaol"
 
 [dependencies.webrender_traits]
-git = "https://github.com/glennw/webrender_traits"
+git = "https://github.com/mephisto41/webrender_traits"
 
 [dependencies.webrender]
-git = "https://github.com/glennw/webrender"
+git = "https://github.com/mephisto41/webrender"
 
 [dependencies]
 app_units = {version = "0.1", features = ["plugins"]}
