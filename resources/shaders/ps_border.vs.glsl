@@ -104,7 +104,7 @@ void main(void) {
     vLocalPos = vi.local_clamped_pos.xy;
 
     // These are in device space
-    vDevicePos = clamped_pos;
+    vDevicePos = vi.global_clamped_pos;
 
     vBorders = vec4(border.info.local_rect.x, border.info.local_rect.y,
                     border.info.local_rect.z,
