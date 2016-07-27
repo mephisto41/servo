@@ -9,6 +9,15 @@ vec4 drawCircle(vec2 aPixel, vec2 aDesiredPos, float aRadius, vec3 aColor) {
   return vec4(aColor, pixelInCircle);
 }
 
+// Draw a rectangle at aRect fill it with aColor. Only works on non-rotated
+// rects.
+vec4 drawRect(vec2 aPixel, vec4 aRect, vec3 aColor) {
+   // GLSL origin is bottom left, positive Y is up
+   bool inRect = (aRect.x <= aPixel.x) && (aPixel.x <= aRect.x + aRect.z) &&
+            (aPixel.y >= aRect.y) && (aPixel.y <= aRect.y + aRect.w);
+   return vec4(aColor, float(inRect));
+}
+
 vec4 draw_dotted_edge() {
   // Everything here should be in device pixels.
   // We want the dot to be roughly the size of the whole border spacing
@@ -21,7 +30,7 @@ vec4 draw_dotted_edge() {
 
   vec2 size = vec2(vBorders.z, vBorders.w);
   // Get our position within this specific segment
-  vec2 position = vPos - vBorders.xy;
+  vec2 position = vDevicePos - vBorders.xy;
 
   // Break our position into square tiles with circles in them.
   vec2 circleCount = floor(size / circleSpacing);
@@ -49,6 +58,49 @@ vec4 draw_dotted_edge() {
   return mix(white, circleColor, circleColor.a);
 }
 
+// Our current edge calculation is based only on
+// the size of the border-size, but we need to draw
+// the dashes in the center of the segment we're drawing.
+// This calculates how much to nudge and which axis to nudge on.
+vec2 get_dashed_nudge_factor(vec2 dash_size, bool is_corner) {
+  if (is_corner) {
+    return vec2(0.0, 0.0);
+  }
+
+  bool xAxisFudge = vBorders.z > vBorders.w;
+  if (xAxisFudge) {
+    return vec2(dash_size.x / 2.0, 0);
+  } else {
+    return vec2(0.0, dash_size.y / 2.0);
+  }
+}
+
+vec4 draw_dashed_edge(bool is_corner) {
+  // Everything here should be in device pixels.
+  // We want the dot to be roughly the size of the whole border spacing
+  // 5.5 here isn't a magic number, it's just what mostly looks like FF/Chrome
+  float dash_interval = min(vBorders.w, vBorders.z) * 5.5;
+  vec2 edge_size = vec2(vBorders.z, vBorders.w);
+  vec2 dash_size = vec2(dash_interval / 2.0, dash_interval / 2.0);
+  vec2 position = vDevicePos - vBorders.xy;
+
+  vec2 dash_count = floor(edge_size/ dash_interval);
+  vec2 dist_between_dashes = edge_size / dash_count;
+
+  vec2 target_rect_index = floor(position / dist_between_dashes);
+  vec2 target_rect_loc = target_rect_index * dist_between_dashes;
+  target_rect_loc += get_dashed_nudge_factor(dash_size, is_corner);
+
+  // TODO correct for center spacing.
+  vec4 target_rect = vec4(target_rect_loc, dash_size);
+
+  vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
+  vec3 black = vec3(0.0, 0.0, 0.0);
+  vec4 target_colored_rect = drawRect(position, target_rect, black);
+
+  return mix(white, target_colored_rect, target_colored_rect.a);
+}
+
 void draw_dotted_border(void) {
   switch (vBorderPart) {
     // These are the layer tile part PrimitivePart as uploaded by the tiling.rs
@@ -56,26 +108,60 @@ void draw_dotted_border(void) {
     case PST_TOP_RIGHT:
     case PST_BOTTOM_LEFT:
     case PST_BOTTOM_RIGHT:
+    {
       // TODO: Fix for corners with a border-radius
       oFragColor = draw_dotted_edge();
       break;
+    }
     case PST_BOTTOM:
     case PST_TOP:
     case PST_LEFT:
     case PST_RIGHT:
+    {
       oFragColor = draw_dotted_edge();
       break;
+    }
+  }
+}
+
+void draw_dashed_border(void) {
+  switch (vBorderPart) {
+    // These are the layer tile part PrimitivePart as uploaded by the tiling.rs
+    case PST_TOP_LEFT:
+    case PST_TOP_RIGHT:
+    case PST_BOTTOM_LEFT:
+    case PST_BOTTOM_RIGHT:
+    {
+      // TODO: Fix for corners with a border-radius
+      bool is_corner = true;
+      oFragColor = draw_dashed_edge(is_corner);
+      break;
+    }
+    case PST_BOTTOM:
+    case PST_TOP:
+    case PST_LEFT:
+    case PST_RIGHT:
+    {
+      bool is_corner = false;
+      oFragColor = draw_dashed_edge(is_corner);
+      break;
+    }
   }
 }
 
 void main(void) {
 	if (vRadii.x > 0.0 &&
-		(distance(vRefPoint, vPos) > vRadii.x ||
-		 distance(vRefPoint, vPos) < vRadii.z)) {
+		(distance(vRefPoint, vLocalPos) > vRadii.x ||
+		 distance(vRefPoint, vLocalPos) < vRadii.z)) {
 		discard;
 	}
 
   switch (vBorderStyle) {
+    case BORDER_STYLE_DASHED:
+    {
+      draw_dashed_border();
+      break;
+    }
     case BORDER_STYLE_DOTTED:
     {
       draw_dotted_border();
